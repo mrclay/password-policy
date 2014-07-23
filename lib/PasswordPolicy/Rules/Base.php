@@ -4,6 +4,9 @@ namespace PasswordPolicy\Rules;
 
 abstract class Base implements \PasswordPolicy\Rule {
 
+    /**
+     * @var \PasswordPolicy\Constraint
+     */
     protected $constraint = null;
 
     public function getMessage() {

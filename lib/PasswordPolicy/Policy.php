@@ -4,6 +4,9 @@ namespace PasswordPolicy;
 
 class Policy {
 
+    /**
+     * @var Rule[]
+     */
     protected $rules = array();
 
     public function atLeast($n) {
@@ -77,6 +80,12 @@ class Policy {
 
     public function match($regex, $description) {
         $rule = new Rules\Regex($regex, $description);
+        $this->rules[] = $rule;
+        return $this;
+    }
+
+    public function notInBlacklist($path, $isCaseSensitive = true, $description = null) {
+        $rule = new Rules\Blacklist($path, $isCaseSensitive, $description);
         $this->rules[] = $rule;
         return $this;
     }
