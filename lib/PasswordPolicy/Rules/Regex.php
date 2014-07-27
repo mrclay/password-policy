@@ -12,31 +12,31 @@ class Regex extends Base {
         $this->regex = $regex;
     }
 
-    public function getMessage() {
-        $constraint = parent::getMessage();
+    public function getDescription() {
+        $constraint = parent::getDescription();
         return sprintf($this->description, $constraint);
     }
 
-    public function test($password) {
+    public function score($password) {
         $matches = array();
         $num = preg_match_all($this->regex, $password, $matches);
-        return $this->testConstraint($num, $password);
+        return $this->testConstraint($num, $password) ? 1 : 0;
     }
 
     public function toJavaScript() {
         $ret = "{
-            message: " . json_encode($this->getMessage()) . ",
-            check: function(p) {
+            description: " . json_encode($this->getDescription()) . ",
+            score: function(p) {
                 var r = {$this->regex}g;";
         if ($this->constraint) {
             $ret .= "
                 var c = " . $this->constraint->toJavaScript() . ";
                 var l = p.match(r);
                 l = l ? l.length : 0;
-                return c(l);";
+                return c(l) ? 1 : 0;";
         } else {
             $ret .= "
-                return r.test(p);";
+                return r.test(p) ? 1 : 0;";
         }
         $ret .= "
             }

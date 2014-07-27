@@ -2,7 +2,9 @@
 
 namespace PasswordPolicy\Constraints;
 
-class Limit implements \PasswordPolicy\Constraint {
+use PasswordPolicy\Constraint;
+
+class Range implements Constraint {
 
     protected $min = 0;
     protected $max = 0;
@@ -34,7 +36,6 @@ class Limit implements \PasswordPolicy\Constraint {
     }
 
     public function toJavaScript() {
-        $msg = $this->getMessage();
         return "function(num) {
                 if (num < {$this->min}) {
                     return false;

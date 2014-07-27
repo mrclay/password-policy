@@ -13,19 +13,35 @@ Require the composer autoload file:
 
     require_once 'vendor/autoload.php';
 
-## Usage:
+## Usage
 
 To use, first instantiate the core policy object:
 
     $policy = new \PasswordPolicy\Policy;
 
-Then, add rules:
+Then, add rules with optional constraints:
 
-    $policy->contains('lowercase', $policy->atLeast(2));
+    $policy
+        ->length(8)
+        ->containsUppercase()
+        ->containsSymbol()->constrain()->atLeast(2);
 
-### Supported rule helper methods are:
+By default all rules are required to pass, but you may set weights and allow some to fail.
 
- * `contains($class, $constraint = null, $description = '')`: Checks to see if a password contains a class of chars
+    // password can be missing a symbol if it's at least 10 chars long
+    $policy
+        ->length(8)->setWeight(100)
+        ->containsUppercase()->setWeight(100)
+
+        ->length(10) // weight 1
+        ->containsSymbol() // weight 1
+        ->allowMissedPoints(1);
+
+For complex policies, you can even include sub-policies as rules.
+
+### Supported Rule Helper Methods
+
+ * `contains($class, $description = '')`: Checks to see if a password contains a class of chars
  
     Supported Short-Cut classes:
 
@@ -39,7 +55,7 @@ Then, add rules:
 
     The second param is a constraint (optional)
 
- * `length($constraint)`: Checks the length of the password matches a constraint
+ * `length($min, $max)`: Checks the length of the password matches a constraint
 
  * `endsWith($class, $description = '')`: Checks to see if the password ends with a character class.
 
@@ -49,7 +65,9 @@ Then, add rules:
 
  * `match($regex, $description)`: Checks if the password matches the regex.
 
-### Supported Constraints:
+### Supported Constraints
+
+After adding a rule
 
 The policy also has short-cut helpers for creating constraints:
 
@@ -67,25 +85,37 @@ The policy also has short-cut helpers for creating constraints:
      
     Equivilant to `between(0, 0)`
 
-## Testing the policy
+## Testing the Policy (PHP)
 
 Once you setup the policy, you can then test it in PHP using the `test($password)` method.
 
     $result = $policy->test($password);
 
-The result return is a stdclass object with two members, result and messages.
+A Result object is returned with methods:
 
- * `$result->result` - A boolean if the password is valid.
+ * `$result->passed()`: Returns boolean: is the password valid?
 
- * `$result->messages` - An array of messages
+ * `$result->getScore()`: Returns the total score
 
-Each message is an object of two members:
+ * `$result->getRequiredScore()`: Returns the score required to pass
 
- * `$message->result` - A boolean indicating if the rule passed
+ * `$result->getMessages()`: Returns an array of messages
 
- * `$message->message` - A textual description of the rule
+Each message is a stdClass object with these members:
 
-## Using JavaScript
+ * `$message->score` - The score given by the rule
+
+ * `$message->weightedScore` - The score adjusted by weight, which adds to the total
+
+ * `$message->description` - A textual description of the rule
+
+### Scoring
+
+Each rule is scored and then multiplied by a weight to arrive at the total score. The policy has a "required score" to determine if the given password is considering passing or failing.
+
+By default, all rules must score 1 to pass, but you can fine-tune the policy by using `$policy->setRequiredScore($score)` and by adjusting the weight of your rules when adding them to the policy.
+
+## Testing the Policy (JavaScript)
 
 Once you've built the policy, you can call `toJavaScript()` to generate a JS anonymous function for injecting into JS code.
 

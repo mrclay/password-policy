@@ -2,25 +2,32 @@
 
 namespace PasswordPolicy\Rules;
 
-abstract class Base implements \PasswordPolicy\Rule {
+use PasswordPolicy\AcceptsConstraints;
+use PasswordPolicy\Constraint;
+use PasswordPolicy\Rule;
 
+abstract class Base implements Rule, AcceptsConstraints {
+
+    /**
+     * @var Constraint
+     */
     protected $constraint = null;
 
-    public function getMessage() {
+    public function getDescription() {
         if ($this->constraint) {
             return $this->constraint->getMessage();
         }
         return '';
     }
 
-    public function setConstraint(\PasswordPolicy\Constraint $constraint) {
+    public function setConstraint(Constraint $constraint) {
         $this->constraint = $constraint;
     }
 
     public function toJavaScript() {
         return '{
-            message: "Not Implemented",
-            check: function(p) { return false; }
+            description: "Not Implemented",
+            score: function(p) { return 0; }
         }';
     }
 
