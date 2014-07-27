@@ -37,25 +37,36 @@ By default all rules are required to pass, but you may set weights and allow som
         ->containsSymbol() // weight 1
         ->allowMissedPoints(1);
 
+Or it may be simpler to organize complex requirements as sub-policies that act as rules:
+
+    $substitutes = (new Policy())
+        ->length(10)
+        ->containsSymbol()
+        ->allowMissedPoints(1);
+    $policy = (new Policy())
+        ->length(8)
+        ->containsUppercase();
+        ->addPolicyAsRule($substitutes);
+
 For complex policies, you can even include sub-policies as rules.
 
 ### Supported Rule Helper Methods
 
- * `contains($class, $description = '')`: Checks to see if a password contains a class of chars
- 
-    Supported Short-Cut classes:
+Several methods check to see if a password contains a certain class of chars.
 
-    * `letter` - `a-zA-Z`
-    * `lowercase` - `a-z`
-    * `uppercase` - `A-Z`
-    * `digit` - `0-9`
-    * `symbol` - `^a-zA-Z0-9` (in other words, non-alpha-numeric)
-    * `null` - `\0`
-    * `alnum` - `a-zA-Z0-9`
+ * `containsLetter($description = '')`: Checks if the password contains characters in a-zA-Z
 
-    The second param is a constraint (optional)
+ * `containsLowercase($description = '')`: Checks if the password contains characters in a-z
 
- * `length($min, $max)`: Checks the length of the password matches a constraint
+ * `containsUppercase($description = '')`: Checks if the password contains characters in A-Z
+
+ * `containsAlnum($description = '')`: Checks if the password contains characters in a-zA-Z0-9
+
+ * `containsDigit($description = '')`: Checks if the password contains characters in 0-9
+
+ * `containsSymbol($description = '')`: Checks if the password contains non alpha-numeric characters
+
+ * `containsNull($description = '')`: Checks if the password contains null characters
 
  * `endsWith($class, $description = '')`: Checks to see if the password ends with a character class.
 
@@ -65,25 +76,23 @@ For complex policies, you can even include sub-policies as rules.
 
  * `match($regex, $description)`: Checks if the password matches the regex.
 
+ * `length($min, $max)`: Checks the length of the password matches a constraint
+
 ### Supported Constraints
 
-After adding a rule
+After adding a rule, you can use constrain() to apply a constraint on the rule (e.g. to change how many matches are required).
 
-The policy also has short-cut helpers for creating constraints:
+    $policy->containsUppercase()->constrain()->atLeast(2)
 
- * `atLeast($n)`: At least the param matches
+4 built-in constraints are available:
 
-    Equivilant to `between($n, PHP_INT_MAX)`
+ * `atLeast($n)`: Sets the minimum number of matches
 
- * `atMost($n)`: At most the param matches
+ * `atMost($n)`: Sets the maximum number of matches
 
-    Equivilant to `between(0, $n)`
+ * `between($min, $max)`: Sets the acceptable range of matches
 
- * `between($min, $max)`: Between $min and $max number of matches
-
- * `never()`: No matches
-     
-    Equivilant to `between(0, 0)`
+ * `never()`: Allows no matches
 
 ## Testing the Policy (PHP)
 
@@ -113,21 +122,20 @@ Each message is a stdClass object with these members:
 
 Each rule is scored and then multiplied by a weight to arrive at the total score. The policy has a "required score" to determine if the given password is considering passing or failing.
 
-By default, all rules must score 1 to pass, but you can fine-tune the policy by using `$policy->setRequiredScore($score)` and by adjusting the weight of your rules when adding them to the policy.
+By default, all rules must score 1 to pass, but you can fine-tune the policy by using `$policy->setRequiredScore($score)` or `$policy->allowMissedPoints($points)` and by adjusting the weight of your rules when adding them to the policy.
 
 ## Testing the Policy (JavaScript)
 
-Once you've built the policy, you can call `toJavaScript()` to generate a JS anonymous function for injecting into JS code.
+Once you've built the policy, you can call `toJavaScript()` to generate a JS anonymous function expression for injecting into JS code.
 
     $js = $policy->toJavaScript();
     echo "var policy = $js;";
 
-Then, the policy object in JS is basically a wrapper for `$policy->test($password)`, and behaves the same (same return values).
+Then, the policy object in JS is basically a wrapper for `$policy->test($password)`, and behaves the same. The return value is similar to the PHP Result class but with properties instead of methods.
 
     var result = policy(password);
-    if (!result.result) {
+    if (!result.passed) {
         /* Process Messages To Display Failure To User */
     }
 
-One note for the JavaScript, any regular expressions that you write need to be deliminated by `/` and be valid JS regexes (no PREG specific functionality is allowed).
-
+One note for the JavaScript, any regular expressions that you write need to be delimited by `/` and be valid JS regexes (no PREG specific functionality is allowed).

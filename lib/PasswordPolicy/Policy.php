@@ -8,13 +8,13 @@ use PasswordPolicy\Exceptions\NoRuleSetException;
 use PasswordPolicy\Rules\Regex;
 
 /**
- * @method Policy containsLetter()
- * @method Policy containsLowercase()
- * @method Policy containsUppercase()
- * @method Policy containsAlnum()
- * @method Policy containsDigit()
- * @method Policy containsSymbol()
- * @method Policy containsNull()
+ * @method Policy containsLetter($description = '')
+ * @method Policy containsLowercase($description = '')
+ * @method Policy containsUppercase($description = '')
+ * @method Policy containsAlnum($description = '')
+ * @method Policy containsDigit($description = '')
+ * @method Policy containsSymbol($description = '')
+ * @method Policy containsNull($description = '')
  */
 class Policy {
 
@@ -234,7 +234,8 @@ class Policy {
             $charClassName = strtolower($m[1]);
             $charClass = Regex::toCharClass($charClassName);
             if ($charClass[1]) {
-                return $this->contains($charClassName);
+                $description = empty($args[0]) ? '' : $args[0];
+                return $this->contains($charClassName, $description);
             }
         }
         throw new \BadMethodCallException("There is no method $name");

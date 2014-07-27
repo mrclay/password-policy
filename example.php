@@ -23,18 +23,17 @@ assert(true == $policy->test("Ax4k45huig")->passed()); // 10 length
 assert(false == $policy->test("gx4k45huig")->passed()); // no uppercase
 
 
-// Policies as rules make this a bit easier:
-$requirements = (new Policy())
-    ->length(6)
-    ->containsUppercase()
-    ->containsLowercase()
-    ->containsDigit();
+// either of these are acceptable
 $substitutions = (new Policy())
     ->containsSymbol()->constrain()->atLeast(2)
     ->length(10)
     ->allowMissedPoints(1);
+
 $policy = (new Policy())
-    ->addPolicyAsRule($requirements)
+    ->length(6)
+    ->containsUppercase()
+    ->containsLowercase()
+    ->containsDigit()
     ->addPolicyAsRule($substitutions);
 
 ?>
